@@ -69,7 +69,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-class Utils {
+public class Utils {
 
     public static final String FEATURE_FIRE_TV = "amazon.hardware.fire_tv";
 

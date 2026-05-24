@@ -52,6 +52,7 @@ import android.view.accessibility.CaptioningManager;
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -155,6 +156,8 @@ public class PlayerActivity extends Activity {
     private static final int CONTROL_TYPE_PAUSE = 2;
 
     private CoordinatorLayout coordinatorLayout;
+    private ImageView ambientBackground;
+    private com.brouken.player.ambient.AmbientManager ambientManager;
     private TextView titleView;
     private ImageButton buttonOpen;
     private ImageButton buttonPiP;
@@ -319,6 +322,7 @@ public class PlayerActivity extends Activity {
         }
 
         coordinatorLayout = findViewById(R.id.coordinatorLayout);
+        ambientBackground = findViewById(R.id.ambient_background);
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         playerView = findViewById(R.id.video_view);
         exoPlayPause = findViewById(R.id.exo_play_pause);
@@ -455,6 +459,14 @@ public class PlayerActivity extends Activity {
         titleView.setEllipsize(TextUtils.TruncateAt.END);
         titleView.setTextDirection(View.TEXT_DIRECTION_LOCALE);
         centerView.addView(titleView);
+
+        ambientManager = new com.brouken.player.ambient.AmbientManager(
+                this,
+                playerView.getVideoSurfaceView(),
+                ambientBackground,
+                titleView,
+                findViewById(R.id.exo_bottom_bar)
+        );
 
         titleView.setOnLongClickListener(view -> {
             // Prevent FileUriExposedException
@@ -1401,6 +1413,10 @@ public class PlayerActivity extends Activity {
     }
 
     public void releasePlayer(boolean save) {
+        if (ambientManager != null) {
+            ambientManager.stop();
+        }
+
         if (save) {
             savePlayer();
         }
@@ -1442,6 +1458,14 @@ public class PlayerActivity extends Activity {
         @Override
         public void onIsPlayingChanged(boolean isPlaying) {
             playerView.setKeepScreenOn(isPlaying);
+
+            if (ambientManager != null) {
+                if (isPlaying) {
+                    ambientManager.start();
+                } else {
+                    ambientManager.stop();
+                }
+            }
 
             if (Utils.isPiPSupported(PlayerActivity.this)) {
                 if (isPlaying) {
